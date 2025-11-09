@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  subscriptions Subscription[]
+  freeUsage     FreeUsage[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+enum SubscriptionStatus {
+  active
+  canceled
+  trial
+}
+
+model Subscription {
+  id      String   @id @default(cuid())
+  userId  String   @unique
+  status  SubscriptionStatus
+  endsAt  DateTime?   // nullable = pas encore expiré
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FreeUsage {
+  id      String   @id @default(cuid())
+  userId  String
+  usedAt  DateTime @default(now())   // LA COLONNE MAGIQUE
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Index magique pour ta requête "aujourd’hui"
+  @@index([userId, usedAt])
+}
