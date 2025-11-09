@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const session = await checkSession()
 
-  const usages = await getTodayUseByUserId(session.user?.id)
+  const usages = await getTodayUseByUserId(session.user!.id!)
 
   return (  
     <main className="p-6 flex flex-col gap-4">

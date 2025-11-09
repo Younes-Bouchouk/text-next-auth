@@ -16,13 +16,13 @@ export const ButtonFeature = ({session}: {session: Session}) => {
     const can = await canUseFeature(session.user?.id!!)
     if (can === "subscribed") {
       console.log("Bien vu pour l'abonnement, fais toi plaisir")
-      await useFeature(session.user.id)
+      await useFeature(session.user!.id!)
       router.refresh()
     } else if (can === "limit") {
       console.log("T'as atteind la limite fréro")
     } else {
       console.log(`Tu est à ${can}/5`)
-      await useFeature(session.user.id)
+      await useFeature(session.user!.id!)
       router.refresh()
     }
   }
